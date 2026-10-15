@@ -1,0 +1,19 @@
+// REFERENCIA: app/api/partner/orders/route.ts (Prisma + szerveroldali munkamenet bekötése után másold az app/ alá, .txt nélkül)
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';              // new PrismaClient()
+import { requirePartner } from '@/lib/session'; // aláírt, httpOnly sütiből olvassa a { userId, partnerId, role } adatot, különben 401
+
+export async function GET() {
+  const s = await requirePartner();
+  const orders = await prisma.order.findMany({ where: { partnerId: s.partnerId }, orderBy: { createdAt: 'desc' }, take: 200 });
+  return NextResponse.json(orders);
+}
+
+export async function PATCH(req: Request) {
+  const s = await requirePartner();
+  const { id, status } = await req.json();
+  if (!['PENDING', 'PREPARING', 'READY', 'COMPLETED'].includes(status)) return NextResponse.json({ error: 'Érvénytelen állapot' }, { status: 400 });
+  // A partnerId a WHERE feltételben van: idegen partner rendelése nem módosítható (0 érintett sor -> 404).
+  const r = await prisma.order.updateMany({ where: { id, partnerId: s.partnerId }, data: { status } });
+  return r.count ? NextResponse.json({ ok: true }) : NextResponse.json({ error: 'Nincs ilyen rendelés' }, { status: 404 });
+}
