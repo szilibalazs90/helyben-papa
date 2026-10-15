@@ -1,6 +1,7 @@
 /node_modules
 /.next
 /dist
+/temp
 .DS_Store
 *.local
 dev.db
