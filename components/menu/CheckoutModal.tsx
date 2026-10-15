@@ -21,7 +21,15 @@ export default function CheckoutModal({ onClose }: { onClose: () => void }) {
     if (f.address.trim().length < 6) return setErr('Add meg a teljes szállítási címet.');
     if (f.phone.replace(/\D/g, '').length < 9) return setErr('Adj meg érvényes telefonszámot.');
     setDone({ name: f.name.trim(), total });
-    placeOrder({ ...f, name: f.name.trim() });
+    
+    placeOrder({ 
+      name: f.name.trim(), 
+      address: f.address.trim(), 
+      phone: f.phone.trim(), 
+      pay: f.pay, 
+      district: f.district 
+    });
+
     notify({ email: user.email, phone: f.phone, subject: 'Rendelésed megérkezett – Helyben', text: `Kedves ${f.name.trim()}! Rendelésedet (${ft(total)}) megkaptuk. Állapotát a profilodban követheted.` }).then((r) => setSent(`E-mail: ${r.email} · SMS: ${r.sms}`)).catch(() => setSent('Az értesítés küldése nem sikerült.'));
   };
 
